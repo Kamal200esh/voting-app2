@@ -1,0 +1,12 @@
+{
+  "name": "student-council-voting",
+  "version": "1.0.0",
+  "description": "A simple student council voting application with admin panel and SQLite database",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

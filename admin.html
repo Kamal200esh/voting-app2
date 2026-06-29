@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Student Council Election</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .view { display: none; }
+  .view.active { display: block; }
+  @keyframes riseUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.99); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ---- Login ---- */
+  .login-wrap {
+    min-height: calc(100vh - 64px);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .login-card {
+    background: var(--paper-card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    padding: 44px 40px;
+    max-width: 400px; width: 100%;
+    position: relative; overflow: hidden;
+  }
+  .login-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--violet), var(--rose), var(--amber), var(--teal));
+    background-size: 300% 100%;
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 300% 0%; }
+  }
+  .login-icon {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--violet-soft), rgba(225,29,72,0.08));
+    border: 1px solid rgba(124,58,237,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px var(--violet-glow);
+  }
+
+  /* ---- Tabs ---- */
+  .tabs {
+    display: flex; gap: 4px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: transparent; border: none;
+    padding: 10px 16px;
+    font-family: var(--font-display); font-weight: 700; font-size: 12px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text-muted); border-radius: var(--radius);
+    transition: all 0.2s ease; flex: 1; white-space: nowrap;
+    min-width: 80px;
+  }
+  .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.04); }
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--violet), var(--indigo));
+    color: #fff;
+    box-shadow: 0 4px 16px var(--violet-glow);
+  }
+
+  /* ---- Panels ---- */
+  .panel { display: none; }
+  .panel.active { display: block; animation: riseUp 0.3s ease both; }
+
+  .panel-card {
+    background: var(--paper-card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-xl);
+    padding: 30px 32px;
+    margin-bottom: 20px;
+    position: relative; overflow: hidden;
+  }
+  .panel-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, var(--violet), var(--rose));
+    border-radius: 3px 0 0 3px;
+  }
+  .panel-card h2 {
+    font-family: var(--font-display); font-size: 18px;
+    margin: 0 0 4px; color: var(--text-primary); font-weight: 800;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-card .panel-sub {
+    font-size: 13px; color: var(--text-secondary); margin: 0 0 22px; line-height: 1.6;
+  }
+
+  .inline-form {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+  }
+  .inline-form .field { flex: 1; min-width: 140px; margin-bottom: 0; }
+  .inline-form .btn { flex-shrink: 0; padding: 13px 20px; }
+
+  select {
+    appearance: none;
+    background: rgba(255,255,255,0.04) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234B5380' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 13px 36px 13px 16px;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  select:focus { border-color: var(--violet-bright); outline: none; box-shadow: 0 0 0 3px var(--violet-soft); }
+
+  /* ---- Photo upload ---- */
+  .photo-upload-area {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+    padding: 18px; border: 1.5px dashed rgba(124,58,237,0.25); border-radius: var(--radius-lg);
+    background: rgba(124,58,237,0.04); cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .photo-upload-area:hover { border-color: var(--violet-bright); background: var(--violet-soft); }
+  .photo-upload-area input[type="file"] { display: none; }
+  .photo-preview { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; border: 2px solid var(--line-soft); flex-shrink: 0; }
+  .photo-placeholder {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: var(--violet-soft); border: 1.5px dashed rgba(124,58,237,0.4);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 22px;
+  }
+  .photo-upload-text strong { display: block; font-size: 14px; color: var(--text-primary); margin-bottom: 3px; font-family: var(--font-display); font-weight: 700; }
+  .photo-upload-text span { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+
+  /* ---- Tables ---- */
+  .table-wrap { overflow-x: auto; margin-top: 18px; border-radius: var(--radius-lg); border: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    text-align: left; font-family: var(--font-mono); font-size: 9px;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);
+    padding: 12px 16px; border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,0.02);
+  }
+  td { padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--text-secondary); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(124,58,237,0.04); }
+
+  .candidate-thumb { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; border: 1px solid var(--line-soft); vertical-align: middle; }
+  .candidate-initials {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--violet-soft), rgba(225,29,72,0.08));
+    border: 1px solid rgba(124,58,237,0.2);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 12px; color: var(--violet-bright);
+    vertical-align: middle;
+  }
+
+  /* ---- Badges ---- */
+  .badge {
+    display: inline-block; font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+    padding: 3px 10px; border-radius: 100px; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .badge--voted   { background: var(--green-soft); color: var(--green-bright); border: 1px solid rgba(16,185,129,0.2); }
+  .badge--pending { background: var(--amber-soft); color: var(--amber-bright); border: 1px solid rgba(245,158,11,0.2); }
+  .badge--open    { background: var(--green-soft); color: var(--green-bright); border: 1px solid rgba(16,185,129,0.2); }
+  .badge--closed  { background: var(--rose-soft);  color: var(--rose-bright); border: 1px solid rgba(225,29,72,0.2); }
+  .badge--position { background: var(--violet-soft); color: var(--violet-bright); border: 1px solid rgba(124,58,237,0.25); }
+
+  .row-delete {
+    background: transparent; border: none; color: var(--text-muted);
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.15s;
+    padding: 4px 8px; border-radius: 4px;
+  }
+  .row-delete:hover { color: var(--rose-bright); background: var(--rose-soft); }
+
+  .empty-state {
+    text-align: center; padding: 40px 0;
+    color: var(--text-muted); font-size: 14px;
+    font-family: var(--font-mono);
+  }
+  .empty-state-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+
+  /* ---- Stats ---- */
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;
+  }
+  @media(max-width:600px) { .stat-grid { grid-template-columns: 1fr; } }
+  .stat-box {
+    background: var(--paper-raised);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg); padding: 22px;
+    text-align: center;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .stat-box:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .stat-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-box:nth-child(1)::before { background: linear-gradient(90deg, var(--violet), var(--indigo)); }
+  .stat-box:nth-child(2)::before { background: linear-gradient(90deg, var(--rose), var(--amber)); }
+  .stat-box:nth-child(3)::before { background: linear-gradient(90deg, var(--teal), var(--green-bright)); }
+  .stat-box .num {
+    font-family: var(--font-display); font-weight: 900; font-size: 36px;
+    background: linear-gradient(135deg, var(--violet-bright), var(--rose-bright));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1;
+  }
+  .stat-box .label {
+    font-family: var(--font-mono); font-size: 9px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); margin-top: 6px;
+  }
+
+  /* ---- Results ---- */
+  .results-position-block { margin-bottom: 28px; }
+  .results-position-title {
+    font-family: var(--font-display); font-weight: 800; font-size: 13px;
+    color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .results-position-title::before { content: '🏷️'; font-size: 14px; }
+
+  .result-bar-wrap {
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    transition: background 0.2s;
+  }
+  .result-bar-wrap:hover { background: rgba(124,58,237,0.04); }
+  .result-bar-label {
+    display: flex; justify-content: space-between;
+    font-size: 14px; margin-bottom: 10px; color: var(--text-secondary);
+    align-items: center;
+  }
+  .result-bar-label b { font-family: var(--font-display); font-weight: 700; color: var(--text-primary); font-size: 14px; }
+  .result-bar-label .vote-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .result-bar-track { height: 10px; background: rgba(255,255,255,0.06); border-radius: 100px; overflow: hidden; }
+  .result-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet), var(--indigo-bright));
+    border-radius: 100px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--violet-glow);
+  }
+  .result-leader {
+    background: linear-gradient(90deg, var(--teal), var(--green-bright));
+    box-shadow: 0 0 10px var(--teal-glow);
+  }
+
+  /* ---- Position list ---- */
+  .position-list { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .position-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 18px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s;
+  }
+  .position-item:hover { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.25); }
+  .position-item-icon { font-size: 18px; }
+  .position-item-title { flex: 1; font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-primary); }
+  .position-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+
+  /* ---- Settings ---- */
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 18px 0; border-bottom: 1px solid var(--line);
+  }
+  .settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .settings-row strong { color: var(--text-primary); font-size: 14px; font-family: var(--font-display); font-weight: 700; }
+  .settings-row p { margin: 3px 0 0; }
+
+  .toggle { position: relative; width: 50px; height: 28px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--line-soft); border-radius: 100px; cursor: pointer;
+    transition: background 0.25s ease;
+    border: 1px solid var(--line-soft);
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute; width: 22px; height: 22px;
+    left: 3px; top: 2px; background: var(--text-muted); border-radius: 50%;
+    transition: transform 0.25s ease, background 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .toggle input:checked + .toggle-slider {
+    background: linear-gradient(135deg, var(--violet), var(--indigo));
+    box-shadow: 0 0 16px var(--violet-glow);
+    border-color: transparent;
+  }
+  .toggle input:checked + .toggle-slider::before {
+    transform: translateX(22px);
+    background: #fff;
+  }
+
+  .logout-link {
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);
+    background: transparent; border: 1px solid var(--line); border-radius: var(--radius);
+    text-decoration: none; transition: all 0.15s; padding: 6px 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .logout-link:hover { color: var(--rose-bright); border-color: var(--rose-bright); background: var(--rose-soft); }
+
+  /* ---- Group header for candidates ---- */
+  .group-header {
+    font-family: var(--font-mono); font-size: 9px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--violet-bright);
+    margin: 24px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .group-header::before { content: ''; flex: 0 0 20px; height: 1px; background: var(--violet); }
+  .group-header::after  { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  /* ---- Toast ---- */
+  #toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--paper-float);
+    border: 1px solid var(--line-soft);
+    color: var(--text-primary); padding: 13px 20px;
+    border-radius: var(--radius-lg);
+    font-size: 14px; font-family: var(--font-body);
+    box-shadow: var(--shadow-float);
+    opacity: 0; transform: translateY(12px);
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none; z-index: 200;
+    display: flex; align-items: center; gap: 10px;
+    max-width: 320px;
+  }
+  #toast::before { content: '✓'; color: var(--green-bright); font-weight: 700; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ---- Section divider ---- */
+  .section-title {
+    font-family: var(--font-mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--violet-bright);
+    margin: 0 0 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(124,58,237,0.3), transparent); }
+</style>
+</head>
+<body>
+
+<!-- Background voting symbols canvas -->
+<canvas id="voteCanvas"></canvas>
+
+<!-- LOGIN VIEW -->
+<div class="view active" id="view-login">
+  <header class="masthead">
+    <div class="masthead__brand">
+      <span class="masthead__mark">Restricted</span>
+      <span class="masthead__title">Election Administration</span>
+    </div>
+  </header>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-icon">🛡️</div>
+      <div class="eyebrow">Admin Portal</div>
+      <h1 class="heading" style="font-size:26px;">Sign in</h1>
+      <p class="subtext" style="font-size:14px;">Manage positions, candidates, voters, and election settings.</p>
+      <div id="loginAlert"></div>
+      <form id="loginForm">
+        <div class="field"><label for="username">Username</label><input type="text" id="username" autocomplete="username"></div>
+        <div class="field"><label for="password">Password</label><input type="password" id="password" autocomplete="current-password"></div>
+        <button type="submit" class="btn btn--primary btn--full">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+          Sign in to admin
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD VIEW -->
+<div class="view" id="view-dashboard">
+  <header class="masthead">
+    <div class="masthead__brand">
+      <span class="masthead__mark">Restricted</span>
+      <span class="masthead__title">Election Administration</span>
+    </div>
+    <button class="logout-link" id="logoutBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Sign out (<span id="loggedInUser"></span>)
+    </button>
+  </header>
+
+  <main class="shell">
+    <div class="tabs">
+      <button class="tab-btn active" data-panel="positions">🏷️ Positions</button>
+      <button class="tab-btn" data-panel="candidates">👤 Candidates</button>
+      <button class="tab-btn" data-panel="voters">🗂️ Voters</button>
+      <button class="tab-btn" data-panel="results">📊 Results</button>
+      <button class="tab-btn" data-panel="settings">⚙️ Settings</button>
+    </div>
+
+    <!-- POSITIONS PANEL -->
+    <section class="panel active" id="panel-positions">
+      <div class="panel-card">
+        <h2>➕ Add a position</h2>
+        <p class="panel-sub">Positions appear on the ballot in the order you add them. Voters must cast one vote per position.</p>
+        <form id="positionForm" class="inline-form">
+          <div class="field">
+            <label>Position title</label>
+            <input type="text" id="positionTitle" placeholder="e.g. President, Secretary, Treasurer">
+          </div>
+          <button type="submit" class="btn btn--primary">Add position</button>
+        </form>
+        <div id="positionAlert"></div>
+      </div>
+      <div class="panel-card">
+        <h2>📋 Current positions</h2>
+        <div id="positionListWrap"></div>
+      </div>
+    </section>
+
+    <!-- CANDIDATES PANEL -->
+    <section class="panel" id="panel-candidates">
+      <div class="panel-card">
+        <h2>➕ Add a candidate</h2>
+        <p class="panel-sub">Each candidate must be assigned to a position. Positions can have 2–3 candidates.</p>
+        <form id="candidateForm">
+          <label class="photo-upload-area" for="candidatePhotoInput">
+            <input type="file" id="candidatePhotoInput" accept="image/*">
+            <div class="photo-placeholder" id="photoPlaceholder">📷</div>
+            <img class="photo-preview" id="photoPreview" style="display:none;" alt="Preview">
+            <div class="photo-upload-text">
+              <strong>Upload candidate photo</strong>
+              <span>Click to choose · JPG, PNG, WEBP</span>
+            </div>
+          </label>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Position</label>
+            <select id="candidatePosition">
+              <option value="">— Select a position —</option>
+            </select>
+          </div>
+          <div class="inline-form">
+            <div class="field">
+              <label>Full name</label>
+              <input type="text" id="candidateName" placeholder="e.g. Arjun Sharma">
+            </div>
+            <div class="field">
+              <label>Party / tagline (optional)</label>
+              <input type="text" id="candidateParty" placeholder="e.g. Student Progressive Party">
+            </div>
+            <button type="submit" class="btn btn--primary">Add candidate</button>
+          </div>
+        </form>
+        <div id="candidateAlert"></div>
+      </div>
+      <div class="panel-card">
+        <h2>👥 Current candidates</h2>
+        <p class="panel-sub">Grouped by position.</p>
+        <div id="candidateTableWrap"></div>
+      </div>
+    </section>
+
+    <!-- VOTERS PANEL -->
+    <section class="panel" id="panel-voters">
+      <div class="panel-card">
+        <h2>➕ Add a voter</h2>
+        <p class="panel-sub">Add each student's ID and name. They'll use their ID to log in and vote.</p>
+        <form id="voterForm" class="inline-form">
+          <div class="field"><label>Student ID</label><input type="text" id="voterId" placeholder="e.g. S10234"></div>
+          <div class="field"><label>Full name</label><input type="text" id="voterName" placeholder="e.g. Priya Mehta"></div>
+          <button type="submit" class="btn btn--primary">Add voter</button>
+        </form>
+        <div id="voterAlert"></div>
+      </div>
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <h2>🗂️ Registered voters</h2>
+          <button class="btn btn--ghost btn--sm" id="downloadVotersBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Download CSV
+          </button>
+        </div>
+        <div id="voterTableWrap"></div>
+      </div>
+    </section>
+
+    <!-- RESULTS PANEL -->
+    <section class="panel" id="panel-results">
+      <div class="panel-card">
+        <h2>📈 Voter turnout</h2>
+        <div class="stat-grid" id="statGrid"></div>
+      </div>
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <h2>🏆 Live results</h2>
+          <button class="btn btn--ghost btn--sm" id="downloadResultsBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Download CSV
+          </button>
+        </div>
+        <p class="panel-sub">Scaled to leading candidate per position. Leading candidate shown in green.</p>
+        <div id="resultsWrap"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS PANEL -->
+    <section class="panel" id="panel-settings">
+      <div class="panel-card">
+        <h2>⚙️ Election settings</h2>
+        <div class="field" style="margin-bottom:24px;"><label>Election title</label><input type="text" id="electionTitle"></div>
+        <div class="settings-row">
+          <div>
+            <strong>Voting open</strong>
+            <p class="panel-sub" style="margin:3px 0 0; font-size:13px;">Students can only vote while this is enabled.</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="votingOpenToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <button class="btn btn--primary" id="saveSettingsBtn" style="margin-top:24px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+          Save settings
+        </button>
+      </div>
+      <div class="panel-card">
+        <h2>🔄 Reset election</h2>
+        <p class="panel-sub">Clears all vote counts and unlocks every voter ID. Candidates, positions, and voter records stay intact. This cannot be undone.</p>
+        <button class="btn btn--danger" id="resetVotesBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          Reset all votes
+        </button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  /* ===== VOTING SYMBOLS BACKGROUND ===== */
+  (function() {
+    const canvas = document.getElementById('voteCanvas');
+    const ctx = canvas.getContext('2d');
+    const symbols = ['✓', '★', '⊕', '✔', '☑', '◆', '●', '▲', '⬡', '⚑'];
+    const colors = ['rgba(124,58,237,', 'rgba(225,29,72,', 'rgba(245,158,11,', 'rgba(20,184,166,', 'rgba(99,102,241,'];
+    let particles = [];
+    let W, H;
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    for (let i = 0; i < 50; i++) {
+      particles.push({
+        x: Math.random() * 1400,
+        y: Math.random() * 900,
+        symbol: symbols[Math.floor(Math.random() * symbols.length)],
+        size: 10 + Math.random() * 20,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        opacity: 0.06 + Math.random() * 0.14,
+        speed: 0.1 + Math.random() * 0.18,
+        drift: (Math.random() - 0.5) * 0.07,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.002,
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x % W, p.y % H);
+        ctx.rotate(p.rot);
+        ctx.font = `${p.size}px serif`;
+        ctx.fillStyle = p.color + p.opacity + ')';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.symbol, 0, 0);
+        ctx.restore();
+        p.y -= p.speed;
+        p.x += p.drift;
+        p.rot += p.rotSpeed;
+        if (p.y < -40) { p.y = H + 40; p.x = Math.random() * W; }
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  /* ===== ADMIN LOGIC ===== */
+  let toastTimer = null;
+  function toast(message) {
+    const el = document.getElementById('toast');
+    el.textContent = message;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  function getInitials(name) {
+    return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  function showAlert(containerId, message, type = 'error') {
+    const icon = type === 'error' ? '⚠️' : '✓';
+    document.getElementById(containerId).innerHTML =
+      `<div class="alert alert--${type}">${icon} ${escapeHtml(message)}</div>`;
+    setTimeout(() => { document.getElementById(containerId).innerHTML = ''; }, 4500);
+  }
+
+  /* ---- Auth ---- */
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/admin/me');
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('loggedInUser').textContent = data.username;
+        document.getElementById('view-login').classList.remove('active');
+        document.getElementById('view-dashboard').classList.add('active');
+        initDashboard();
+      }
+    } catch (e) {}
+  }
+  checkAuth();
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Signing in…';
+    try {
+      const res = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
+      const data = await res.json();
+      if (!res.ok) { showAlert('loginAlert', data.error || 'Login failed'); return; }
+      document.getElementById('loggedInUser').textContent = data.username;
+      document.getElementById('view-login').classList.remove('active');
+      document.getElementById('view-dashboard').classList.add('active');
+      initDashboard();
+    } catch (err) { showAlert('loginAlert', 'Could not reach the server.'); }
+    finally { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg> Sign in to admin'; }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    location.reload();
+  });
+
+  /* ---- Tabs ---- */
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+      if (btn.dataset.panel === 'results') loadResults();
+      if (btn.dataset.panel === 'candidates') refreshPositionSelect();
+    });
+  });
+
+  let dashboardInitialized = false;
+  function initDashboard() {
+    if (dashboardInitialized) return;
+    dashboardInitialized = true;
+    loadPositions();
+    loadCandidates();
+    loadVoters();
+    loadSettings();
+    document.getElementById('positionForm').addEventListener('submit', addPosition);
+    document.getElementById('candidateForm').addEventListener('submit', addCandidate);
+    document.getElementById('voterForm').addEventListener('submit', addVoter);
+    document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+    document.getElementById('resetVotesBtn').addEventListener('click', resetVotes);
+    document.getElementById('downloadVotersBtn').addEventListener('click', downloadVotersCSV);
+    document.getElementById('downloadResultsBtn').addEventListener('click', downloadResultsCSV);
+  }
+
+  /* ---- Photo upload preview ---- */
+  let selectedPhotoDataUrl = null;
+  document.getElementById('candidatePhotoInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      selectedPhotoDataUrl = ev.target.result;
+      document.getElementById('photoPlaceholder').style.display = 'none';
+      const preview = document.getElementById('photoPreview');
+      preview.src = selectedPhotoDataUrl;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  /* ---- Positions ---- */
+  let cachedPositions = [];
+
+  async function loadPositions() {
+    const res = await fetch('/api/admin/positions');
+    const data = await res.json();
+    cachedPositions = data.positions || [];
+    renderPositionList();
+    refreshPositionSelect();
+  }
+
+  function renderPositionList() {
+    const wrap = document.getElementById('positionListWrap');
+    if (!cachedPositions.length) {
+      wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🏷️</span>No positions yet. Add the first one above.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <div class="position-list">
+        ${cachedPositions.map((p, i) => `
+          <div class="position-item">
+            <span class="position-item-icon">🏷️</span>
+            <span class="position-item-title">${escapeHtml(p.title)}</span>
+            <button class="row-delete" data-id="${p.id}" data-action="delete-position">Remove</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    wrap.querySelectorAll('[data-action="delete-position"]').forEach(btn => {
+      btn.addEventListener('click', () => deletePosition(btn.dataset.id));
+    });
+  }
+
+  function refreshPositionSelect() {
+    const select = document.getElementById('candidatePosition');
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">— Select a position —</option>' +
+      cachedPositions.map(p => `<option value="${p.id}" ${String(p.id) === currentVal ? 'selected' : ''}>${escapeHtml(p.title)}</option>`).join('');
+  }
+
+  async function addPosition(e) {
+    e.preventDefault();
+    const title = document.getElementById('positionTitle').value.trim();
+    if (!title) return showAlert('positionAlert', 'Position title is required.');
+    const res = await fetch('/api/admin/positions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title }) });
+    const data = await res.json();
+    if (!res.ok) return showAlert('positionAlert', data.error || 'Could not add position.');
+    document.getElementById('positionTitle').value = '';
+    toast(`Added position "${title}"`);
+    await loadPositions();
+    await loadCandidates();
+  }
+
+  async function deletePosition(id) {
+    if (!confirm('Remove this position? All associated candidates will be unlinked. This cannot be undone.')) return;
+    await fetch('/api/admin/positions/' + id, { method: 'DELETE' });
+    toast('Position removed');
+    await loadPositions();
+    await loadCandidates();
+  }
+
+  /* ---- Candidates ---- */
+  async function loadCandidates() {
+    const res = await fetch('/api/admin/candidates');
+    const data = await res.json();
+    const wrap = document.getElementById('candidateTableWrap');
+    const candidates = data.candidates || [];
+
+    if (!candidates.length) {
+      wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">👤</span>No candidates yet. Add the first one above.</div>';
+      return;
+    }
+
+    const grouped = {};
+    const unassigned = [];
+    candidates.forEach(c => {
+      if (c.position_id) {
+        if (!grouped[c.position_id]) grouped[c.position_id] = { title: c.position_title, candidates: [] };
+        grouped[c.position_id].candidates.push(c);
+      } else {
+        unassigned.push(c);
+      }
+    });
+
+    let html = '';
+    Object.values(grouped).forEach(group => {
+      html += `<div class="group-header">${escapeHtml(group.title)}</div>`;
+      html += buildCandidateTable(group.candidates);
+    });
+    if (unassigned.length) {
+      html += `<div class="group-header" style="color:var(--text-muted);">Unassigned</div>`;
+      html += buildCandidateTable(unassigned);
+    }
+
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('[data-action="delete-candidate"]').forEach(btn => {
+      btn.addEventListener('click', () => deleteCandidate(btn.dataset.id));
+    });
+  }
+
+  function buildCandidateTable(candidates) {
+    return `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Photo</th><th>Name</th><th>Party / tagline</th><th>Votes</th><th></th></tr></thead>
+          <tbody>
+            ${candidates.map(c => `
+              <tr>
+                <td>${c.photo_url
+                  ? `<img class="candidate-thumb" src="${escapeHtml(c.photo_url)}" alt="${escapeHtml(c.name)}" onerror="this.style.display='none'">`
+                  : `<span class="candidate-initials">${escapeHtml(getInitials(c.name))}</span>`}</td>
+                <td><strong style="color:var(--text-primary);font-family:var(--font-display);font-weight:700;">${escapeHtml(c.name)}</strong></td>
+                <td>${escapeHtml(c.party || '—')}</td>
+                <td class="mono" style="color:var(--violet-bright);font-weight:600;">${c.votes}</td>
+                <td><button class="row-delete" data-id="${c.id}" data-action="delete-candidate">Remove</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async function addCandidate(e) {
+    e.preventDefault();
+    const name = document.getElementById('candidateName').value.trim();
+    const party = document.getElementById('candidateParty').value.trim();
+    const position_id = document.getElementById('candidatePosition').value;
+    if (!name) return showAlert('candidateAlert', 'Candidate name is required.');
+    if (!position_id) return showAlert('candidateAlert', 'Please select a position for this candidate.');
+    const payload = { name, party, photo_url: selectedPhotoDataUrl || '', position_id: Number(position_id) };
+    const res = await fetch('/api/admin/candidates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (!res.ok) return showAlert('candidateAlert', data.error || 'Could not add candidate.');
+    document.getElementById('candidateName').value = '';
+    document.getElementById('candidateParty').value = '';
+    document.getElementById('candidatePhotoInput').value = '';
+    selectedPhotoDataUrl = null;
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('photoPlaceholder').style.display = 'flex';
+    toast(`Added candidate "${name}"`);
+    loadCandidates();
+  }
+
+  async function deleteCandidate(id) {
+    if (!confirm('Remove this candidate? This cannot be undone.')) return;
+    await fetch('/api/admin/candidates/' + id, { method: 'DELETE' });
+    toast('Candidate removed');
+    loadCandidates();
+  }
+
+  /* ---- Voters ---- */
+  let latestVotersData = [];
+
+  async function loadVoters() {
+    const res = await fetch('/api/admin/voters');
+    const data = await res.json();
+    latestVotersData = data.voters || [];
+    const wrap = document.getElementById('voterTableWrap');
+    if (!data.voters.length) {
+      wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🗂️</span>No voters registered yet.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student ID</th><th>Name</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${data.voters.map(v => `
+              <tr>
+                <td class="mono" style="color:var(--violet-bright);">${escapeHtml(v.id)}</td>
+                <td style="color:var(--text-primary);font-family:var(--font-display);font-weight:600;">${escapeHtml(v.name)}</td>
+                <td>${v.has_voted ? '<span class="badge badge--voted">✓ Voted</span>' : '<span class="badge badge--pending">Pending</span>'}</td>
+                <td><button class="row-delete" data-id="${v.id}" data-action="delete-voter">Remove</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    wrap.querySelectorAll('[data-action="delete-voter"]').forEach(btn => {
+      btn.addEventListener('click', () => deleteVoter(btn.dataset.id));
+    });
+  }
+
+  async function addVoter(e) {
+    e.preventDefault();
+    const id = document.getElementById('voterId').value.trim();
+    const name = document.getElementById('voterName').value.trim();
+    if (!id || !name) return showAlert('voterAlert', 'Student ID and name are both required.');
+    const res = await fetch('/api/admin/voters', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, name }) });
+    const data = await res.json();
+    if (!res.ok) return showAlert('voterAlert', data.error || 'Could not add voter.');
+    document.getElementById('voterId').value = '';
+    document.getElementById('voterName').value = '';
+    toast(`Added voter "${name}"`);
+    loadVoters();
+  }
+
+  async function deleteVoter(id) {
+    if (!confirm('Remove this voter? This cannot be undone.')) return;
+    await fetch('/api/admin/voters/' + encodeURIComponent(id), { method: 'DELETE' });
+    toast('Voter removed');
+    loadVoters();
+  }
+
+  /* ---- CSV export helpers ---- */
+  function csvEscape(value) {
+    const str = String(value ?? '');
+    if (/[",\n]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+    return str;
+  }
+
+  function rowsToCsv(headers, rows) {
+    const lines = [headers.map(csvEscape).join(',')];
+    rows.forEach(row => lines.push(row.map(csvEscape).join(',')));
+    return lines.join('\r\n');
+  }
+
+  function downloadCsv(filename, csvContent) {
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadVotersCSV() {
+    if (!latestVotersData.length) return toast('No voters to export yet.');
+    const rows = latestVotersData.map(v => [
+      v.id,
+      v.name,
+      v.has_voted ? 'Voted' : 'Pending',
+      v.voted_at || '',
+    ]);
+    const csv = rowsToCsv(['Student ID', 'Name', 'Status', 'Voted At'], rows);
+    const date = new Date().toISOString().slice(0, 10);
+    downloadCsv(`voters-${date}.csv`, csv);
+    toast('Voters list downloaded');
+  }
+
+  /* ---- Results ---- */
+  let latestResultsData = null;
+
+  async function loadResults() {
+    const res = await fetch('/api/admin/results');
+    const data = await res.json();
+    latestResultsData = data;
+
+    const turnoutPct = data.totalVoters ? Math.round((data.totalVoted / data.totalVoters) * 100) : 0;
+
+    document.getElementById('statGrid').innerHTML = `
+      <div class="stat-box"><div class="num">${data.totalVoters}</div><div class="label">Registered voters</div></div>
+      <div class="stat-box"><div class="num">${data.totalVoted}</div><div class="label">Votes cast</div></div>
+      <div class="stat-box"><div class="num">${turnoutPct}%</div><div class="label">Turnout</div></div>
+    `;
+
+    const wrap = document.getElementById('resultsWrap');
+    if (!data.positions.length) {
+      wrap.innerHTML = '<div class="empty-state"><span class="empty-state-icon">📊</span>No positions added yet.</div>';
+      return;
+    }
+
+    let html = '';
+    data.positions.forEach(pos => {
+      html += `<div class="results-position-block">`;
+      html += `<div class="results-position-title">${escapeHtml(pos.title)}</div>`;
+      if (!pos.candidates.length) {
+        html += '<p style="color:var(--text-muted);font-size:13px;margin-bottom:18px;font-family:var(--font-mono);">No candidates for this position.</p>';
+        html += '</div>'; return;
+      }
+      const max = Math.max(...pos.candidates.map(c => c.votes), 1);
+      const leader = pos.candidates[0];
+      pos.candidates.forEach(c => {
+        const isLeader = c.id === leader.id && c.votes > 0;
+        html += `
+          <div class="result-bar-wrap">
+            <div class="result-bar-label">
+              <b>${escapeHtml(c.name)}${isLeader ? ' 🏆' : ''}</b>
+              <span class="vote-count">${c.votes} vote${c.votes !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="result-bar-track">
+              <div class="result-bar-fill ${isLeader ? 'result-leader' : ''}" style="width:${(c.votes / max) * 100}%"></div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    });
+
+    if (data.unassigned && data.unassigned.length) {
+      html += '<div class="results-position-block"><div class="results-position-title" style="color:var(--text-muted);">Unassigned</div>';
+      const max = Math.max(...data.unassigned.map(c => c.votes), 1);
+      data.unassigned.forEach(c => {
+        html += `
+          <div class="result-bar-wrap">
+            <div class="result-bar-label"><b>${escapeHtml(c.name)}</b><span class="vote-count">${c.votes} vote${c.votes !== 1 ? 's' : ''}</span></div>
+            <div class="result-bar-track"><div class="result-bar-fill" style="width:${(c.votes / max) * 100}%"></div></div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+
+    wrap.innerHTML = html;
+  }
+
+  function downloadResultsCSV() {
+    if (!latestResultsData || !latestResultsData.positions) return toast('No results to export yet.');
+    const rows = [];
+    latestResultsData.positions.forEach(pos => {
+      pos.candidates.forEach(c => {
+        rows.push([pos.title, c.name, c.party || '', c.votes]);
+      });
+    });
+    if (latestResultsData.unassigned) {
+      latestResultsData.unassigned.forEach(c => {
+        rows.push(['Unassigned', c.name, c.party || '', c.votes]);
+      });
+    }
+    if (!rows.length) return toast('No results to export yet.');
+    const csv = rowsToCsv(['Position', 'Candidate', 'Party', 'Votes'], rows);
+    const date = new Date().toISOString().slice(0, 10);
+    downloadCsv(`results-${date}.csv`, csv);
+    toast('Results downloaded');
+  }
+  async function loadSettings() {
+    const res = await fetch('/api/admin/settings');
+    const data = await res.json();
+    document.getElementById('electionTitle').value = data.title;
+    document.getElementById('votingOpenToggle').checked = !!data.is_open;
+  }
+
+  async function saveSettings() {
+    const title = document.getElementById('electionTitle').value.trim();
+    const is_open = document.getElementById('votingOpenToggle').checked;
+    await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, is_open }) });
+    toast('Settings saved successfully');
+  }
+
+  async function resetVotes() {
+    if (!confirm('This will erase all vote counts and unlock every voter ID. Continue?')) return;
+    await fetch('/api/admin/reset-votes', { method: 'POST' });
+    toast('Election reset — all votes cleared');
+    loadVoters();
+    loadCandidates();
+    loadResults();
+  }
+</script>
+</body>
+</html>
